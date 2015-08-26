@@ -53,29 +53,52 @@ public class MP1 {
     public String[] process() throws Exception {
 
         Map<String, Integer> map = new HashMap<String, Integer>();
-
+        Map<Integer, String> linesMap = new HashMap<Integer, String>();
         Integer idx = 0;
         List<String> stopWordsList = Arrays.asList(stopWordsArray);
 
         List<Integer> indexes = Arrays.asList(getIndexes());
         List<String> lines = Files.readAllLines(FileSystems.getDefault().getPath(this.inputFileName), StandardCharsets.UTF_8);
         for (String line : lines) {
-            if (indexes.contains(idx)) {
-                //System.out.println(idx + " : " + line);
-                StringTokenizer st = new StringTokenizer(line, delimiters);
-                while (st.hasMoreElements()) {
-                    String word = st.nextToken();
-                    if (word.isEmpty() || stopWordsList.contains(word)) continue;
-                    if (map.containsKey(word)) {
-                        Integer count = map.get(word);
-                        map.put(word, ++count);
-                    } else {
-                        map.put(word, 1);
-                    }
-                }
-            }
+            linesMap.put(idx, line);
             idx++;
         }
+
+        for (Integer index : indexes){
+            String line = linesMap.get(index);
+            StringTokenizer st = new StringTokenizer(line, delimiters);
+            while (st.hasMoreElements()) {
+                String word = st.nextToken().toLowerCase().trim();
+                if (word.isEmpty() || stopWordsList.contains(word)) {
+                    continue;
+                }
+                if (map.containsKey(word)) {
+                    Integer count = map.get(word);
+                    count++;
+                    map.put(word, count);
+                } else {
+                    map.put(word, 1);
+                }
+            }
+        }
+
+//        for (String line : lines) {
+//            if (indexes.contains(idx)) {
+//                //System.out.println(idx + " : " + line);
+//                StringTokenizer st = new StringTokenizer(line, delimiters);
+//                while (st.hasMoreElements()) {
+//                    String word = st.nextToken().toLowerCase().trim();
+//                    if (word.isEmpty() || stopWordsList.contains(word)) continue;
+//                    if (map.containsKey(word)) {
+//                        Integer count = map.get(word);
+//                        map.put(word, ++count);
+//                    } else {
+//                        map.put(word, 1);
+//                    }
+//                }
+//            }
+//            idx++;
+//        }
         return getTop20RatedWordsArray(map);
     }
 
@@ -83,9 +106,9 @@ public class MP1 {
         ValueComparator bvc = new ValueComparator(map);
         TreeMap<String, Integer> sorted_map = new TreeMap<String, Integer>(bvc);
         sorted_map.putAll(map);
-
-        List<String> list = Collections.list(Collections.enumeration(sorted_map.keySet())).subList(0, 20);
-        return list.toArray(new String[20]);
+        List<String> list = Collections.list(Collections.enumeration(sorted_map.keySet()));
+        //Collections.sort(list);
+        return list.subList(0, 20).toArray(new String[20]);
     }
 
     public static void main(String[] args) throws Exception {
@@ -113,10 +136,18 @@ public class MP1 {
         public int compare(String a, String b) {
             Integer ai = map.get(a);
             Integer bi = map.get(b);
-            if (ai >= bi) {
+            if (ai > bi) {
                 return -1;
-            } else {
+            } else if (ai < bi){
                 return 1;
+            } else {
+                int compare = a.compareTo(b);
+                if (compare <= 0){
+                    return -1;
+                }
+                else {
+                    return 1;
+                }
             }
         }
     }
